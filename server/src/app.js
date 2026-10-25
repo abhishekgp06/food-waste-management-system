@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { testConnection } from './config/db.js';
 import requestId from './middleware/requestId.js';
+import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
@@ -84,32 +85,10 @@ app.get('/api/v1', (req, res) => {
   });
 });
 
-// 404 Not Found Handler
-app.use((req, res) => {
-  res.status(404).json({
-    error: {
-      code: 'NOT_FOUND',
-      message: `The requested resource '${req.originalUrl}' does not exist on this server.`,
-      requestId: req.id || `req_${Date.now()}`
-    }
-  });
-});
+// 404 Catch-All Handler (must be registered after all valid routes)
+app.use(notFoundHandler);
 
-// Centralized Global Error Handler
-app.use((err, req, res, next) => {
-  const statusCode = err.status || 500;
-  const isProduction = process.env.NODE_ENV === 'production';
-
-  res.status(statusCode).json({
-    error: {
-      code: err.code || 'INTERNAL_SERVER_ERROR',
-      message: isProduction && statusCode === 500
-        ? 'An unexpected error occurred. Please contact the administrator.'
-        : err.message || 'Internal server error',
-      requestId: req.id || `req_${Date.now()}`,
-      ...(isProduction ? {} : { stack: err.stack })
-    }
-  });
-});
+// Centralized Global Error Handler (must be registered last with 4 arguments)
+app.use(errorHandler);
 
 export default app;
