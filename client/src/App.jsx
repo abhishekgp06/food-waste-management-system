@@ -1,68 +1,74 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import Layout from './components/layout/Layout';
+import { ProtectedRoute } from './components/common/ProtectedRoute';
+
+// Pages
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import DonationListPage from './pages/DonationListPage';
+import DonationDetailPage from './pages/DonationDetailPage';
+import CreateDonationPage from './pages/CreateDonationPage';
+import DashboardPage from './pages/DashboardPage';
+
+function NotFoundPage() {
+  return (
+    <div className="max-w-md mx-auto my-16 p-8 bg-slate-900 border border-slate-800 rounded-3xl text-center">
+      <h2 className="text-3xl font-extrabold text-white mb-2">404</h2>
+      <p className="text-sm font-semibold text-slate-300 mb-1">Page Not Found</p>
+      <p className="text-xs text-slate-500 mb-6">
+        The requested URL was not found on this platform.
+      </p>
+      <Link
+        to="/"
+        className="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition-colors"
+      >
+        Return to Home
+      </Link>
+    </div>
+  );
+}
 
 export default function App() {
   return (
-    <main className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between p-6 md:p-12">
-      <header className="max-w-5xl mx-auto w-full flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-800 pb-6 gap-4">
-        <div>
-          <span className="text-xs font-semibold tracking-wider text-emerald-400 uppercase bg-emerald-950/70 border border-emerald-800/60 px-3 py-1 rounded-full">
-            Academic Project • 2026–2027
-          </span>
-          <h1 className="text-2xl md:text-3xl font-bold mt-3 text-white">
-            Cloud-Based Food Waste Management System
-          </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Department of Information Science and Engineering • The National Institute of Engineering, Mysuru
-          </p>
-        </div>
-        <div className="text-right text-xs text-slate-400">
-          <p className="font-medium text-slate-300">Student: Abhishek G P (4NI24IS096)</p>
-          <p>Guide: Ms. Prajakta M</p>
-        </div>
-      </header>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            {/* Public Accessible Routes */}
+            <Route index element={<LandingPage />} />
+            <Route path="login" element={<LoginPage />} />
+            <Route path="register" element={<RegisterPage />} />
+            <Route path="donations" element={<DonationListPage />} />
+            <Route path="donations/:id" element={<DonationDetailPage />} />
 
-      <section className="max-w-5xl mx-auto w-full my-auto py-12">
-        <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-8 backdrop-blur shadow-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-4">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Step 1: Foundation Ready
-          </div>
-          <h2 className="text-xl md:text-2xl font-semibold text-white mb-3">
-            GitHub-Ready Project Foundation Initialized
-          </h2>
-          <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-3xl mb-6">
-            The core repository architecture, strict documentation framework, safe configuration placeholders, and container specifications are established. Full business workflows, authentication, database state machines, and dashboards will be built in subsequent phases.
-          </p>
+            {/* Authenticated Dashboard Routes */}
+            <Route
+              path="dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-700/60">
-            <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-              <span className="text-xs text-slate-400 uppercase font-semibold">Frontend</span>
-              <p className="text-sm font-medium text-white mt-1">React 18 + Vite</p>
-              <span className="text-xs text-emerald-400">Tailwind CSS</span>
-            </div>
-            <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-              <span className="text-xs text-slate-400 uppercase font-semibold">Backend</span>
-              <p className="text-sm font-medium text-white mt-1">Node.js + Express</p>
-              <span className="text-xs text-emerald-400">Modular Monolith</span>
-            </div>
-            <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-              <span className="text-xs text-slate-400 uppercase font-semibold">Database</span>
-              <p className="text-sm font-medium text-white mt-1">PostgreSQL 16</p>
-              <span className="text-xs text-emerald-400">ACID + Row Locks</span>
-            </div>
-            <div className="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
-              <span className="text-xs text-slate-400 uppercase font-semibold">Cloud & Ops</span>
-              <p className="text-sm font-medium text-white mt-1">AWS EC2 + S3</p>
-              <span className="text-xs text-emerald-400">Docker Compose</span>
-            </div>
-          </div>
-        </div>
-      </section>
+            {/* Donor-Specific Creation Route */}
+            <Route
+              path="donations/new"
+              element={
+                <ProtectedRoute allowedRoles={['DONOR']}>
+                  <CreateDonationPage />
+                </ProtectedRoute>
+              }
+            />
 
-      <footer className="max-w-5xl mx-auto w-full pt-6 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 gap-2">
-        <p>© 2026–2027 NIE Mysuru • Information Science and Engineering</p>
-        <p className="text-slate-400">Awaiting user approval to proceed to Step 2</p>
-      </footer>
-    </main>
+            {/* Catch-all 404 Route */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
