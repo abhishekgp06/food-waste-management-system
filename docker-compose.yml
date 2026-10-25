@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # PostgreSQL Database Service
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: food_waste_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-food_waste_db}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres_dev_password}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-food_waste_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # Backend API Service (Node.js + Express)
+  # ============================================================================
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: food_waste_server
+    restart: unless-stopped
+    ports:
+      - "${PORT:-5000}:5000"
+    environment:
+      PORT: 5000
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-food_waste_db}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres_dev_password}
+      DATABASE_URL: postgres://${DB_USER:-postgres}:${DB_PASSWORD:-postgres_dev_password}@postgres:5432/${DB_NAME:-food_waste_db}
+      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_key_change_me}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:5173}
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-nie-food-waste-photos}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ============================================================================
+  # Frontend Client Service (React + Vite)
+  # ============================================================================
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: food_waste_client
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_BASE_URL: http://localhost:5000/api/v1
+    depends_on:
+      - server
+
+volumes:
+  postgres_data:
+    driver: local
