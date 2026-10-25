@@ -4,6 +4,10 @@ import helmet from 'helmet';
 import { testConnection } from './config/db.js';
 import requestId from './middleware/requestId.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
+import authRoutes from './routes/authRoutes.js';
+import authController from './controllers/authController.js';
+import { authenticate } from './middleware/auth.js';
+import donationRoutes from './routes/donationRoutes.js';
 
 const app = express();
 
@@ -84,6 +88,15 @@ app.get('/api/v1', (req, res) => {
     status: 'Foundation Ready'
   });
 });
+
+// Authentication & User Profile Routes
+app.use('/api/v1/auth', authRoutes);
+
+// User profile alias (matches /api/v1/me documented in REST API catalog)
+app.get('/api/v1/me', authenticate, authController.getMe);
+
+// Food Donation Routes
+app.use('/api/v1/donations', donationRoutes);
 
 // 404 Catch-All Handler (must be registered after all valid routes)
 app.use(notFoundHandler);
