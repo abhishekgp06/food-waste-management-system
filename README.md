@@ -21,7 +21,7 @@ An engineering project submitted for the degree of Bachelor of Engineering in In
 | **Course Code** | BIS505 |
 | **Academic Year** | 2026–2027 |
 | **Student Name** | Abhishek G P |
-| **USN** | 4NI24IS096 |
+| **USN** | 4NI24IS004|
 | **Project Guide** | Ms. Prajakta M |
 
 The **Cloud-Based Food Waste Management System** is a cloud-native platform designed to bridge the logistical gap between food donors (such as college hostels, restaurants, cafeteria networks, and event halls) and recipient charitable organizations (NGOs, shelters, and food banks). By integrating strict expiration tracking, concurrency-safe atomic claims, proximity discovery, and immutable audit logs, the platform ensures that surplus food reaches those in need while strictly adhering to food safety timelines.
