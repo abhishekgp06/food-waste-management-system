@@ -7,8 +7,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "node --test",
-    "lint": "echo 'Linting server files...'"
+    "test": "node --test test/",
+    "lint": "echo 'Linting server files...'",
+    "db:test": "node src/scripts/test-db.js",
+    "migrate": "node src/scripts/migrate.js",
+    "migrate:status": "node src/scripts/migrate.js --status"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

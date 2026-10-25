@@ -1,35 +1,42 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import app from './app.js';
+import { closePool } from './config/db.js';
+import logger from './utils/logger.js';
 
-// Load environment variables from .env if present
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables from project root or server directory
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(`Cloud-Based Food Waste Management System - Backend API`);
-  console.log(`Institution: The National Institute of Engineering, Mysuru`);
-  console.log(`Academic Year: 2026-2027`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Listening on http://localhost:${PORT}`);
-  console.log(`Health endpoint: http://localhost:${PORT}/health`);
-  console.log(`====================================================`);
+  logger.info('Cloud-Based Food Waste Management System - Backend API started', {
+    institution: 'The National Institute of Engineering, Mysuru',
+    academicYear: '2026-2027',
+    environment: process.env.NODE_ENV || 'development',
+    port: PORT,
+    endpoints: {
+      health: `http://localhost:${PORT}/health`,
+      databaseHealth: `http://localhost:${PORT}/health/db`
+    }
+  });
 });
 
 // Graceful shutdown handling
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server...');
-  server.close(() => {
-    console.log('HTTP server closed.');
+const gracefulShutdown = async (signal) => {
+  logger.info(`${signal} signal received: closing HTTP server and database pool...`);
+  server.close(async () => {
+    logger.info('HTTP server closed.');
+    await closePool();
+    logger.info('Graceful shutdown completed.');
     process.exit(0);
   });
-});
+};
 
-process.on('SIGINT', () => {
-  console.log('SIGINT signal received: closing HTTP server...');
-  server.close(() => {
-    console.log('HTTP server closed.');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
